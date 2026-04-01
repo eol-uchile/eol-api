@@ -1,2 +1,3 @@
 def plugin_settings(settings):
-    pass
+    settings.EOL_API_RATE = '1/minute'
+    
