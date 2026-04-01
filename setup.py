@@ -2,10 +2,10 @@ import setuptools
 
 setuptools.setup(
     name="eol_api",
-    version="0.0.0",
+    version="0.0.1",
     author="Oficina EOL UChile",
     author_email="eol-ing@uchile.cl",
-    description=".",
+    description="A unified API apps that aggregates multiple general-purpose APIs into a single service.",
     url="https://eol.uchile.cl",
     packages=setuptools.find_packages(),
     classifiers=[
