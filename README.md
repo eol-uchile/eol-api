@@ -1,5 +1,7 @@
 # Eol api
 
+![Coverage Status](/coverage-badge.svg)
+
 ![https://github.com/eol-uchile/eol-api/actions](https://github.com/eol-uchile/eol-api/workflows/Python%20application/badge.svg)
 
 Allows to send student and grades info from an url
