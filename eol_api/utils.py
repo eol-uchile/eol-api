@@ -27,7 +27,7 @@ def grade_percent_scaled(grade_percent, grade_cutoff, min_grade=3, max_grade=7, 
         raw_grade = float(min_grade) / (1. - grade_cutoff) * grade_percent + (float(max_grade) - (float(min_grade) / (1. - grade_cutoff)))
     return round(decimal.Decimal(str(raw_grade)), decimal_digits)
 
-def get_student_per_course(course_id, from_date, passed = True):
+def student_grades(course_id, from_date, passed = True):
     """
     Respond a summary of all students and its data from an specific course.
     """

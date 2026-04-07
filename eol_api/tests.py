@@ -24,12 +24,12 @@ from xmodule.modulestore.tests.factories import CourseFactory
 
 # Internal project dependencies
 from .models import ClientCourseAccess
-from .serializers import StudentPerCourseSerializer
+from .serializers import StudentGradesSerializer
 
 @override_settings(EOL_API_RATE='10/minute')
-class TestStudentPerCourseSerializer(ModuleStoreTestCase):
+class TestStudentGradesSerializer(ModuleStoreTestCase):
     def setUp(self):
-        super(TestStudentPerCourseSerializer, self).setUp()
+        super(TestStudentGradesSerializer, self).setUp()
         self.course = CourseFactory.create(
             org='mss',
             course='999',
@@ -72,14 +72,14 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             created_by = self.user_staff
         )
 
-    def test_eol_api_student_per_course_serializers(self):
+    def test_eol_api_student_grades_serializers(self):
         """
         test course serializers normal process with only required attribute
         """
         body = {
             "course_id":str(self.course.id)
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertTrue(serializer.is_valid())
 
     def test_eol_api_course_serializers_no_params(self):
@@ -87,7 +87,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         test course serializers when there is not data in body post
         """
         body = {}
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(str(serializer.errors["course_id"][0]), "This field is required.")
 
@@ -99,7 +99,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         body = {
             "course_id": wrong_id
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         expected = f"Course key not valid or dont exists: {wrong_id}"
         self.assertEqual(str(serializer.errors["course_id"][0]), expected)
@@ -117,7 +117,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "from_date":None
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(str(serializer.errors["from_date"][0]), "This field may not be null.")
 
@@ -126,7 +126,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "from_date":"2020/07/07"
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(str(serializer.errors["from_date"][0]), "Date has wrong format. Use one of these formats instead: DD-MM-YYYY, DD-MM-YYYY hh:mm, DD-MM-YYYY hh:mm:ss.")
         # 3 Future date
@@ -134,7 +134,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "from_date":"20-07-2027"
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(str(serializer.errors["from_date"][0]), "from_date can´t be a future date")
 
@@ -143,7 +143,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "from_date":"20-07-2025"
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertTrue(serializer.is_valid())
 
     def test_eol_api_course_serializers_passed(self):
@@ -158,7 +158,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "passed":None
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(str(serializer.errors["passed"][0]), "This field may not be null.")
 
@@ -167,7 +167,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "passed":"20-07-2027"
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(str(serializer.errors["passed"][0]), "Must be a valid boolean.")
 
@@ -176,40 +176,40 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             "course_id":str(self.course.id),
             "passed":True
         }
-        serializer = StudentPerCourseSerializer(data=body)
+        serializer = StudentGradesSerializer(data=body)
         self.assertTrue(serializer.is_valid())
 
-    def test_url_student_per_course_with_anon_client(self):
+    def test_url_student_grades_with_anon_client(self):
         """
-        test student_per_course with anonymous client
+        test student_grades with anonymous client
         """
         data= {
             'course_id': str(self.course_2.id),
         }
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         self.assertEqual(response, {"detail": "Authentication credentials were not provided."})
         self.assertEqual(result.status_code, 401)
 
-    def test_url_student_per_course_with_no_permission(self):
+    def test_url_student_grades_with_no_permission(self):
         """
-        test student_per_course when user doesn't have access to this course_id
+        test student_grades when user doesn't have access to this course_id
         """
         data= {
             'course_id': str(self.course_2.id),
         }
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         self.assertEqual(response, {"error": "You don't have permission"})
         self.assertEqual(result.status_code, 403)
 
-    def test_url_student_per_course_with_no_data(self):
+    def test_url_student_grades_with_no_data(self):
         """
-        test student_per_course when no course_id wasn't sended
+        test student_grades when no course_id wasn't sended
         """
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'))
+        result = self.client_token.get(reverse('eol_api:student_grades'))
         response = json.loads(result.content.decode('utf-8'))
         expected = {
             'course_id': ['This field is required.']
@@ -217,15 +217,15 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 400)
 
-    def test_url_student_per_course_with_no_student(self):
+    def test_url_student_grades_with_no_student(self):
         """
-        test student_per_course with course_id and no student data
+        test student_grades with course_id and no student data
         """
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
         data= {
             'course_id':str(self.course.id),
         }
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         expected = [{
             'course_data':{
@@ -239,9 +239,9 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 200)
 
-    def test_url_student_per_course_with_ucursos_id(self):
+    def test_url_student_grades_with_ucursos_id(self):
         """
-        test student_per_course with course_id and no student data
+        test student_grades with course_id and no student data
         but adding a ucurso_course map
         """
         data= {
@@ -252,7 +252,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             ucurso_course="course/test/map"
         )
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         expected = [{
             'course_data':{
@@ -266,9 +266,9 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 200)
 
-    def test_url_student_per_course_with_students(self):
+    def test_url_student_grades_with_students(self):
         """
-        test student_per_course with course_id, adding a ucurso_course map and adding student_data
+        test student_grades with course_id, adding a ucurso_course map and adding student_data
         """
         # Create EdxUCursosMapping
         EdxUCursosMapping.objects.create(
@@ -297,7 +297,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             'course_id':str(self.course.id),
         }
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         expected = [{
             'course_data':{
@@ -318,9 +318,9 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 200)
 
-    def test_url_student_per_course_with_students_passed_False(self):
+    def test_url_student_grades_with_students_passed_False(self):
         """
-        test student_per_course with course_id, adding a ucurso_course map, adding student_data
+        test student_grades with course_id, adding a ucurso_course map, adding student_data
         and passed as False, meaning all student in a course and its info must be returned
         """
         # Create EdxUCursosMapping
@@ -350,7 +350,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             'course_id':str(self.course.id),
         }
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         expected = [{
             'course_data':{
@@ -378,14 +378,14 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             'course_id': str(self.course.id),
             'passed': False
         }
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 200)
 
-    def test_url_student_per_course_with_students_with_passed_True(self):
+    def test_url_student_grades_with_students_with_passed_True(self):
         """
-        test student_per_course with course_id, adding a ucurso_course map, adding student_data
+        test student_grades with course_id, adding a ucurso_course map, adding student_data
         and passed as True, meaning only student who passed in a course and its info must be returned
         """
         data= {
@@ -415,7 +415,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             passed_timestamp=now_1
         )
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         expected = [{
             'course_data':{
@@ -436,9 +436,9 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 200)
 
-    def test_url_student_per_course_with_students_with_from_date(self):
+    def test_url_student_grades_with_students_with_from_date(self):
         """
-        test student_per_course with course_id, adding a ucurso_course map, adding student_data,
+        test student_grades with course_id, adding a ucurso_course map, adding student_data,
         passed as True and from_date, meaning only student who passes before an specific date in a course and its info must be returned
         """
         data= {
@@ -469,7 +469,7 @@ class TestStudentPerCourseSerializer(ModuleStoreTestCase):
             passed_timestamp=date_before
         )
         self.client_token.credentials(HTTP_AUTHORIZATION = 'Bearer ' + self.token.token)
-        result = self.client_token.get(reverse('eol_api:student_per_course'), data)
+        result = self.client_token.get(reverse('eol_api:student_grades'), data)
         response = json.loads(result.content.decode('utf-8'))
         expected = [{
             'course_data':{
