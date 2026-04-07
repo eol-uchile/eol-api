@@ -24,7 +24,7 @@ def validate_course(id_course):
 
 logger = logging.getLogger(__name__)
 
-class StudentPerCourseSerializer(serializers.Serializer):
+class StudentGradesSerializer(serializers.Serializer):
     """
     This serializer allows to check incoming query params
     
@@ -39,13 +39,13 @@ class StudentPerCourseSerializer(serializers.Serializer):
     def validate_course_id(self, value):
         course_id = value
         if not validate_course(course_id):
-            logger.error('StudentPerCourseSerializer - Course key not valid or dont exists: {}'.format(course_id))
+            logger.error('StudentGradesSerializer - Course key not valid or dont exists: {}'.format(course_id))
             raise serializers.ValidationError(u"Course key not valid or dont exists: {}".format(course_id))
         return course_id
 
     def validate_from_date(self, value):
         if value > datetime.date.today():
-            logger.error('StudentPerCourseSerializer - from_date can´t be a future date {}'.format(value))
+            logger.error('StudentGradesSerializer - from_date can´t be a future date {}'.format(value))
             raise serializers.ValidationError("from_date can´t be a future date")
         return value
     

@@ -13,8 +13,8 @@ from openedx.core.lib.api.authentication import BearerAuthentication
 
 # Internal project dependencies
 from .models import ClientCourseAccess
-from .serializers import StudentPerCourseSerializer
-from .utils import get_student_per_course
+from .serializers import StudentGradesSerializer
+from .utils import student_grades
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class CustomUserRateThrottle(UserRateThrottle):
     def get_rate(self):
         return getattr(settings, 'EOL_API_RATE', '1/minute')
 
-class StudentPerCourse(APIView):
+class StudentGrades(APIView):
     """
     To use this API you must be logged and have access in ClientCourseAccess
     Return a list of course data and student data in this format:
@@ -57,7 +57,7 @@ class StudentPerCourse(APIView):
     throttle_classes = [CustomUserRateThrottle]
     
     def get(self, request, format=None):
-        serializer = StudentPerCourseSerializer(data=request.query_params)
+        serializer = StudentGradesSerializer(data=request.query_params)
         if serializer.is_valid():
             course_id = serializer.validated_data['course_id']
             token = request.auth
@@ -69,12 +69,11 @@ class StudentPerCourse(APIView):
             if has_access:
                 from_date = serializer.validated_data.get('from_date') 
                 passed = serializer.validated_data.get('passed') 
-                response = get_student_per_course(course_id, from_date, passed)
+                response = student_grades(course_id, from_date, passed)
                 return Response(data=response, status=status.HTTP_200_OK)
             else:
-                logger.error("EOL-API - StudentPerCourse - You don't have permission")
+                logger.error("EOL-API - StudentGrades - You don't have permission")
                 return Response({"error": "You don't have permission"}, status=status.HTTP_403_FORBIDDEN)
         else:
-            logger.error("EOL-API - StudentPerCourse - serializer is not valid")
+            logger.error("EOL-API - StudentGrades - serializer is not valid")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
