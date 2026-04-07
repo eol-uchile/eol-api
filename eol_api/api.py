@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 # Edx dependencies
 from openedx.core.lib.api.authentication import BearerAuthentication
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 
 # Internal project dependencies
 from .models import ClientCourseAccess
@@ -23,7 +24,7 @@ class CustomUserRateThrottle(UserRateThrottle):
     This is a custom rate throttle this overwrite default throttle values
     """
     def get_rate(self):
-        return getattr(settings, 'EOL_API_RATE', '1/minute')
+        return configuration_helpers.get_value('EOL_API_RATE',getattr(settings, 'EOL_API_RATE', '1/minute'))
 
 class StudentGrades(APIView):
     """
