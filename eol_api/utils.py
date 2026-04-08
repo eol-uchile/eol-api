@@ -43,9 +43,9 @@ def student_grades(course_id, from_date, passed = True):
     if passed:
         query &= Q(letter_grade__isnull=False) & ~Q(letter_grade='')
         if from_date:
-            query &= Q(passed_timestamp__gte=from_date)
+            query &= Q(modified__gte=from_date)
 
-    persistent_grades_users = PersistentCourseGrade.objects.filter(query).values_list('user_id','percent_grade','passed_timestamp','letter_grade')
+    persistent_grades_users = PersistentCourseGrade.objects.filter(query).values_list('user_id','percent_grade','passed_timestamp','modified')
     student_data = []
     for grade in persistent_grades_users:
         percent_grade = grade[1]
@@ -53,7 +53,8 @@ def student_grades(course_id, from_date, passed = True):
             'document_id':get_indiv_id(grade[0]),
             'passed_timestamp': grade[2],
             'percent_grade': percent_grade,
-            'grade': grade_percent_scaled(percent_grade, grade_cutoff)
+            'grade': grade_percent_scaled(percent_grade, grade_cutoff),
+            'modified': grade[3]
         })
 
     response_payload =[{
