@@ -128,11 +128,11 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
         }
         serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
-        self.assertEqual(str(serializer.errors["from_date"][0]), "Date has wrong format. Use one of these formats instead: DD-MM-YYYY, DD-MM-YYYY hh:mm, DD-MM-YYYY hh:mm:ss.")
+        self.assertEqual(str(serializer.errors["from_date"][0]), "Date has wrong format. Use one of these formats instead: YYYY-MM-DD, YYYY-MM-DD hh:mm, YYYY-MM-DD hh:mm:ss.")
         # 3 Future date
         body = {
             "course_id":str(self.course.id),
-            "from_date":"20-07-2027"
+            "from_date":"2027-07-20"
         }
         serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
@@ -141,7 +141,7 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
         # 4 Normal process
         body = {
             "course_id":str(self.course.id),
-            "from_date":"20-07-2025"
+            "from_date":"2025-07-20"
         }
         serializer = StudentGradesSerializer(data=body)
         self.assertTrue(serializer.is_valid())
@@ -165,7 +165,7 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
         # 2 wrong format
         body = {
             "course_id":str(self.course.id),
-            "passed":"20-07-2027"
+            "passed":"2027-07-20"
         }
         serializer = StudentGradesSerializer(data=body)
         self.assertFalse(serializer.is_valid())
@@ -283,7 +283,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.8,
             letter_grade='Pass',
-            passed_timestamp=now
+            passed_timestamp=now,
+            modified=now
         )
         PersistentCourseGrade.objects.create(
             course_id=self.course.id,
@@ -291,7 +292,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.4,
             letter_grade='',
-            passed_timestamp=now_1
+            passed_timestamp=now_1,
+            modified=now_1
         )
         data = {
             'course_id':str(self.course.id),
@@ -311,7 +313,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
                     'document_id': None,
                     'passed_timestamp': now.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     'percent_grade': 0.8,
-                    'grade': 5.8
+                    'grade': 5.8,
+                    'modified': now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                 }
             ]
         }]
@@ -336,7 +339,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.8,
             letter_grade='Pass',
-            passed_timestamp=now
+            passed_timestamp=now,
+            modified=now
         )
         PersistentCourseGrade.objects.create(
             course_id=self.course.id,
@@ -344,7 +348,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.4,
             letter_grade='',
-            passed_timestamp=now_1
+            passed_timestamp=now_1,
+            modified=now_1
         )
         data = {
             'course_id':str(self.course.id),
@@ -364,13 +369,15 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
                     'document_id': None,
                     'passed_timestamp': now.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     'percent_grade': 0.8,
-                    'grade': 5.8
+                    'grade': 5.8,
+                    'modified': now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                 },
                 {    
                     'document_id': None,
                     'passed_timestamp': now_1.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     'percent_grade': 0.4,
-                    'grade': 3.4
+                    'grade': 3.4,
+                    'modified': now_1.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                 }
             ]
         }]
@@ -404,7 +411,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.8,
             letter_grade='Pass',
-            passed_timestamp=now
+            passed_timestamp=now,
+            modified=now
         )
         PersistentCourseGrade.objects.create(
             course_id=self.course.id,
@@ -412,7 +420,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.4,
             letter_grade='',
-            passed_timestamp=now_1
+            passed_timestamp=now_1,
+            modified=now_1
         )
         self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
         result = self.client_token.get(reverse('eol_api:student_grades'), data)
@@ -429,7 +438,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
                     'document_id': None,
                     'passed_timestamp': now.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     'percent_grade': 0.8,
-                    'grade': 5.8
+                    'grade': 5.8,
+                    'modified': now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                 }
             ]
         }]
@@ -444,7 +454,7 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
         data= {
             'course_id': str(self.course.id),
             'passed': True,
-            'from_date': '20-07-2025'
+            'from_date': '2025-07-20'
         }
         EdxUCursosMapping.objects.create(
             edx_course=self.course.id,
@@ -458,7 +468,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.8,
             letter_grade='Pass',
-            passed_timestamp=date_after
+            passed_timestamp=date_after,
+            modified=date_after
         )
         PersistentCourseGrade.objects.create(
             course_id=self.course.id,
@@ -466,7 +477,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             grading_policy_hash='policy',
             percent_grade=0.4,
             letter_grade='',
-            passed_timestamp=date_before
+            passed_timestamp=date_before,
+            modified=date_before
         )
         self.client_token.credentials(HTTP_AUTHORIZATION = 'Bearer ' + self.token.token)
         result = self.client_token.get(reverse('eol_api:student_grades'), data)
@@ -483,7 +495,8 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
                     'document_id': None,
                     'passed_timestamp': '2025-07-25T00:00:00Z',
                     'percent_grade': 0.8,
-                    'grade': 5.8
+                    'grade': 5.8,
+                    'modified': '2025-07-25T00:00:00Z',
                 }
             ]
         }]
