@@ -12,6 +12,9 @@ from lms.djangoapps.courseware.courses import get_course_by_id
 from lms.djangoapps.grades.models import PersistentCourseGrade
 from opaque_keys.edx.keys import CourseKey
 
+# Internal project dependencies
+from .models import ClientCourseAccess
+
 context = decimal.getcontext()
 context.rounding = decimal.ROUND_HALF_UP
 
@@ -68,3 +71,13 @@ def student_grades(course_id, from_date, passed = True):
     }]
     
     return response_payload
+
+def get_client_courses(application):
+    """
+    Respond a list of course_id
+    """
+    courses_ids = ClientCourseAccess.objects.filter(
+            client = application
+        ).values_list('course_id',flat=True)
+    str_courses_ids = [str(x) for x in courses_ids]
+    return {'courses_ids':str_courses_ids}
