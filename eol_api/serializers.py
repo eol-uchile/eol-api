@@ -32,7 +32,7 @@ class StudentGradesSerializer(serializers.Serializer):
     course_id = serializers.CharField(required=True, allow_blank=False)
     from_date = serializers.DateField(
         required=False, 
-        input_formats=['%d-%m-%Y', '%d-%m-%Y %H:%M', '%d-%m-%Y %H:%M:%S']
+        input_formats=['%Y-%m-%d', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S']
         )
     passed = serializers.BooleanField(required=False, default=True)
 
