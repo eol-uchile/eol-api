@@ -15,7 +15,7 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 # Internal project dependencies
 from .models import ClientCourseAccess
 from .serializers import StudentGradesSerializer
-from .utils import student_grades
+from .utils import student_grades, get_client_courses
 
 logger = logging.getLogger(__name__)
 
@@ -78,3 +78,29 @@ class StudentGrades(APIView):
         else:
             logger.error("EOL-API - StudentGrades - serializer is not valid")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+class ClientCourses(APIView):
+    """
+    To use this API you must be logged and have access in ClientCourseAccess
+    Return a list of course ids with this format:
+    {
+        'courses_ids':['course-v1:org+demo+2018','course-v1:org2+demo+2025']
+    }
+    """
+    authentication_classes = (BearerAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    throttle_classes = [CustomUserRateThrottle]
+    
+    def get(self, request, format=None):
+        token = request.auth
+        application = token.application
+        has_access = ClientCourseAccess.objects.filter(
+            client = application
+        ).exists()
+        if has_access:
+            response = get_client_courses(application)
+            return Response(data=response, status=status.HTTP_200_OK)
+        else:
+            logger.error("EOL-API - ClientCourses - You don't have access to any courses")
+            return Response({"error": "You don't have access to any courses"}, status=status.HTTP_403_FORBIDDEN)
+     

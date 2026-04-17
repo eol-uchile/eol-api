@@ -42,6 +42,12 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             display_name='2025',
             emit_signals=True)
         aux_2 = CourseOverview.get_from_id(self.course_2.id)
+        self.course_3 = CourseFactory.create(
+            org='mss',
+            course='131',
+            display_name='2025',
+            emit_signals=True)
+        aux_3 = CourseOverview.get_from_id(self.course_3.id)
         with patch('common.djangoapps.student.models.cc.User.save'):
             # staff user
             self.user_staff = UserFactory(
@@ -65,9 +71,15 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
             expires=now() + timedelta(hours=1),
             scope="read write"
         )
-        self.client_course = ClientCourseAccess.objects.create(
+        ClientCourseAccess.objects.create(
             client = self.application,
-            course_id = self.course.id,
+            course_id = str(self.course.id),
+            created = datetime.datetime.now(),
+            created_by = self.user_staff
+        )
+        ClientCourseAccess.objects.create(
+            client = self.application,
+            course_id = str(self.course_3.id),
             created = datetime.datetime.now(),
             created_by = self.user_staff
         )
@@ -502,3 +514,25 @@ class TestStudentGradesSerializer(ModuleStoreTestCase):
         }]
         self.assertEqual(response, expected)
         self.assertEqual(result.status_code, 200)
+
+    def test_url_get_client_courses(self):
+        """
+        test get_client_courses normal process to obtain a list of courses_ids 
+        """
+        self.client_token.credentials(HTTP_AUTHORIZATION = 'Bearer ' + self.token.token)
+        result = self.client_token.get(reverse('eol_api:get_client_courses'))
+        response = json.loads(result.content.decode('utf-8'))
+        expected ={'courses_ids':[str(self.course.id), str(self.course_3.id)]}
+        self.assertEqual(response, expected)
+        self.assertEqual(result.status_code, 200)
+
+    def test_url_get_client_courses_with_no_access_to_any_courses(self):
+        """
+        test get_client_courses when user doesn't have access to any courses
+        """
+        ClientCourseAccess.objects.filter(client=self.application).delete()
+        self.client_token.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token.token)
+        result = self.client_token.get(reverse('eol_api:get_client_courses'))
+        response = json.loads(result.content.decode('utf-8'))
+        self.assertEqual(response, {"error": "You don't have access to any courses"})
+        self.assertEqual(result.status_code, 403)
